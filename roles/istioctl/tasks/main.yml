@@ -1,0 +1,24 @@
+---
+
+- name: ISTIOCTL | Check installation
+  stat:
+    path: "{{ istioctl_binary_dir }}/istioctl"
+  changed_when: False
+  register: istioctl_binary
+
+- name: ISTIOCTL | Download and unarchive binary
+  unarchive:
+    remote_src: yes
+    src: "{{ istioctl_src_url }}"
+    dest: "{{ istioctl_source_dir }}"
+    creates: "{{ istioctl_source_dir }}/{{ istioctl_name }}"
+  when: not istioctl_binary.stat.exists
+
+- name: ISTIOCTL | Link Istio binary
+  file:
+    src: "{{ istioctl_source_dir }}/{{ istioctl_name }}/bin/istioctl"
+    dest: "{{ istioctl_binary_dir }}/istioctl"
+    owner: root
+    group: root
+    mode: 0755
+    state: link

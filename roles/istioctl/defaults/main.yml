@@ -1,0 +1,18 @@
+---
+
+###
+# ISTIOCTL
+###
+
+# Mirror
+istioctl_version: 1.1.7
+istioctl_mirror: https://github.com/istio/istio/releases/download
+istioctl_platform: linux
+
+# Istioctl
+istioctl_source_dir: /opt
+istioctl_install_dir: /usr/bin/
+istioctl_name: istio-{{ istioctl_version }}
+istioctl_tgz: "{{ istioctl_name }}-{{ istioctl_platform }}.tar.gz"
+istioctl_src_url: "{{ istioctl_mirror }}/{{ istioctl_version }}/{{ istioctl_tgz }}"
+istioctl_binary_dir: /usr/bin
