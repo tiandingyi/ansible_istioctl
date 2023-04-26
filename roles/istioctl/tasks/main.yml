@@ -1,11 +1,27 @@
 ---
 
+# 使用 Ansible 的 stat 模块来检查指定的 istioctl 可执行文件是否存在。
+# 如果文件存在，则将 istioctl_binary 注册为 Ansible 变量，否则将该变量设置为未定义。
+# name: 任务的名称，用于标识该任务。
+# stat: 模块名，表示使用 Ansible 的 stat 模块来检查文件状态。
+# path: 指定要检查的文件的路径，该路径是一个 Ansible 变量，表示 Istio istioctl 工具的路径，由 istioctl_binary_dir 变量和 istioctl 可执行文件名组成。
+# changed_when: 指定当该任务执行后是否需要将 Ansible 的 "changed" 标志设置为 True。在这个任务中，该参数被设置为 False，表示如果文件存在，该任务不会更改系统状态。
+# register: 指定一个变量，将检查结果存储在该变量中，以便在后续任务中使用。在这个任务中，将检查结果存储在名为 istioctl_binary 的变量中。
 - name: ISTIOCTL | Check installation
   stat:
     path: "{{ istioctl_binary_dir }}/istioctl"
   changed_when: False
   register: istioctl_binary
 
+
+# 使用 Ansible 的 unarchive 模块来下载和解压指定的 Istio istioctl 工具二进制文件。
+# 如果该文件已经存在，则跳过该任务。
+# unarchive: 模块名，表示使用 Ansible 的 unarchive 模块来执行下载和解压操作。
+# remote_src: 指定是否从远程主机上的源位置获取文件。在这个任务中，将该参数设置为 yes，表示从远程 URL 获取文件。
+# src: 指定要下载的文件的位置。在这个任务中，该参数是一个 Ansible 变量，表示 Istio istioctl 工具的下载 URL。
+# dest: 指定要将文件解压到的目标目录。在这个任务中，该参数是一个 Ansible 变量，表示 Istio istioctl 工具的源代码目录。
+# creates: 指定一个文件或目录，如果该文件或目录已经存在，则不需要执行该任务。在这个任务中，该参数是一个 Ansible 变量，表示已经解压的 Istio istioctl 工具的路径。如果该文件已经存在，则不需要重新解压。
+# when: 指定一个条件，在该条件为真时才执行该任务。在这个任务中，该条件检查 Istio istioctl 工具是否已经安装，如果未安装，则执行该任务。
 - name: ISTIOCTL | Download and unarchive binary
   unarchive:
     remote_src: yes
@@ -14,6 +30,20 @@
     creates: "{{ istioctl_source_dir }}/{{ istioctl_name }}"
   when: not istioctl_binary.stat.exists
 
+
+
+# 这段代码使用了Ansible配置管理工具的YAML语法，用于在目标主机上创建一个软链接，将Istio二进制文件中的istioctl工具链接到指定的目录。
+
+# 下面是代码中每个属性的含义：
+
+# name： 用于标识这个任务的名称，这里是“ISTIOCTL”。
+# file： 定义一个文件的属性。
+# src：Istio二进制文件中的istioctl工具的路径。{{ istioctl_source_dir }}/{{ istioctl_name }}/bin/istioctl是一个基于Ansible变量的表达式，其中istioctl_source_dir和istioctl_name是预定义的变量。
+# dest：指定软链接在目标主机上的路径和名称。在这里，软链接将被创建为{{ istioctl_binary_dir }}/istioctl，istioctl_binary_dir是另一个预定义的变量。
+# owner：指定软链接的所有者，这里是root用户。
+# group：指定软链接的用户组，这里也是root用户组。
+# mode：指定软链接的文件权限，这里是0755，表示所有者和其他用户都有可读、可写、可执行的权限，但仅限于所有者和用户组的可执行文件权限。
+# state：指定要创建的文件状态，这里是“link”，表示创建一个软链接，而不是一个实际的文件。
 - name: ISTIOCTL | Link Istio binary
   file:
     src: "{{ istioctl_source_dir }}/{{ istioctl_name }}/bin/istioctl"
